@@ -102,6 +102,27 @@ namespace HugeIntegerProg
       return new HugeInteger(newDigits, newSign);
     }
 
+    public HugeInteger prod(HugeInteger hugeInt)
+    {
+      var carry = 0;
+      var newDigits = new int[30];
+      var newSign = Sign.Positive;
+      for (int i = 0; i < 15; i++)
+      {
+        var coefficientOne = digits[i];
+        for (int j = 0; j < 16; j++)
+        {
+          var previousValue = newDigits[i + j];
+          var coefficientTwo = hugeInt.digits[j];
+          newDigits[i + j] = (coefficientOne * coefficientTwo + previousValue + carry) % 10;
+          carry = coefficientOne * coefficientTwo + previousValue > 10 ? (coefficientOne * coefficientTwo + previousValue) / 10 : 0;
+        }
+        if (sign != hugeInt.sign)
+          newSign = Sign.Negative;
+      }
+      return new HugeInteger(newDigits, newSign);
+    }
+
     private HugeInteger larger(HugeInteger hugeInt)
     {
       var larger = this;
