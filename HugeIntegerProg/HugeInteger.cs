@@ -88,9 +88,10 @@ namespace HugeIntegerProg
       var newSign = Sign.Positive;
       for (int i = DIGITS_SIZE - 1; i >= 0; i--)
       {
-        if ( i > 0 && (smallest.digits[i - 1] > largest.digits[i - 1]))
-          largest.digits[i] -= 1;
-        newDigits[i] = ((largest.digits[i] + carry) - smallest.digits[i]) % 10;
+        var larger = largest.digits[i];
+        if (i > 0 && (smallest.digits[i - 1] > largest.digits[i - 1]))
+          larger = largest.digits[i] - 1;
+        newDigits[i] = ((larger + carry) - smallest.digits[i]) % 10;
         if (i > 0 && (smallest.digits[i - 1] > largest.digits[i - 1]))
           carry = 10;
         else
