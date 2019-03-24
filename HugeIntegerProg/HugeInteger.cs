@@ -22,8 +22,8 @@ namespace HugeIntegerProg
     {
       int[] digits = new int[DIGITS_SIZE];
       var sign = number.StartsWith("-") ? Sign.Negative : Sign.Positive;
-      var start = sign == Sign.Negative ? 1 : 0;
-      for (int i = start; i < number.Length; i++)
+      var offset = sign == Sign.Negative ? 1 : 0;
+      for (int i = 0; i < number.Length - offset; i++)
       {
         digits[i] = int.Parse(number[number.Length - i - 1].ToString());
       }
@@ -49,7 +49,9 @@ namespace HugeIntegerProg
       }
       else
       {
-        diff(hugeInt);
+        if (hugeInt.sign == Sign.Negative)
+          hugeInt.sign = Sign.Positive;
+        return diff(hugeInt);
       }
       return new HugeInteger(newDigits, newSign);
     }
@@ -57,12 +59,12 @@ namespace HugeIntegerProg
     public HugeInteger diff(HugeInteger hugeInt)
     {
       var carry = 0;
-      if(sign == Sign.Negative && hugeInt.sign == Sign.Positive)
+      if (sign == Sign.Negative && hugeInt.sign == Sign.Positive)
       {
         hugeInt.sign = Sign.Negative;
         return sum(hugeInt);
       }
-      if(sign == Sign.Positive && hugeInt.sign == Sign.Negative)
+      if (sign == Sign.Positive && hugeInt.sign == Sign.Negative)
       {
         hugeInt.sign = Sign.Positive;
         return sum(hugeInt);
@@ -77,23 +79,24 @@ namespace HugeIntegerProg
       var largest = longest;
       var smallest = shortest;
       if (largest == smallest)
+      {
         largest = larger(hugeInt);
-      
+        smallest = largest == this ? hugeInt : this;
+      }
+
       var newDigits = new int[30];
       var newSign = Sign.Positive;
-      if (!summing)
+      for (int i = DIGITS_SIZE - 1; i >= 0; i--)
       {
-        for (int i = 0; i < DIGITS_SIZE; i++)
-        {
-          newDigits[i] = (digits[i] + hugeInt.digits[i] + carry) % 10;
-          carry = (digits[i] + hugeInt.digits[i] + carry) / 10;
-        }
-        newSign = sign;
+        if ( i > 0 && (smallest.digits[i - 1] > largest.digits[i - 1]))
+          largest.digits[i] -= 1;
+        newDigits[i] = ((largest.digits[i] + carry) - smallest.digits[i]) % 10;
+        if (i > 0 && (smallest.digits[i - 1] > largest.digits[i - 1]))
+          carry = 10;
+        else
+          carry = 0;
       }
-      else
-      {
-        sum(hugeInt);
-      }
+      newSign = largest.sign;
       return new HugeInteger(newDigits, newSign);
     }
 
@@ -107,7 +110,7 @@ namespace HugeIntegerProg
           larger = this;
           break;
         }
-        else if(digits[i] < hugeInt.digits[i])
+        else if (digits[i] < hugeInt.digits[i])
         {
           larger = hugeInt;
           break;
@@ -124,6 +127,7 @@ namespace HugeIntegerProg
         if (digits[i] != 0)
         {
           length = i + 1;
+          break;
         }
       }
       return length;
@@ -131,15 +135,8 @@ namespace HugeIntegerProg
 
     public string toString()
     {
-      var length = 0;
       var number = "";
-      for (int i = digits.Length - 1; i >= 0; i--)
-      {
-        if (digits[i] != 0)
-        {
-          length = i + 1;
-        }
-      }
+      var length = this.length();
       for (int i = length - 1; i >= 0; i--)
       {
         number += digits[i];

@@ -9,7 +9,8 @@ namespace HugeIntegerProg
   class Program
   {
     static void Main(string[] args)
-    { 
+    {
+      HugeIntegerTest.Test();
     }
   }
 }
