@@ -6,10 +6,10 @@ namespace HugeIntegerProg
   {
     public static void Test()
     {
-      var hugeIntOne = HugeInteger.Input("56");
-      var hugeIntTwo = HugeInteger.Input("48");
-      var prod = hugeIntOne.prod(hugeIntTwo);
-      Console.WriteLine(hugeIntOne.toString() + " * " + hugeIntTwo.toString() + " = " + prod.toString());
+      var hugeIntOne = HugeInteger.Input("-23");
+      var hugeIntTwo = HugeInteger.Input("3");
+      var div = hugeIntOne.div(hugeIntTwo);
+      Console.WriteLine(hugeIntOne.toString() + " / " + hugeIntTwo.toString() + " = " + div.toString());
       Console.ReadKey();
     }
   }

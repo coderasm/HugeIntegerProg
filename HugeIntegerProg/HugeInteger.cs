@@ -12,6 +12,11 @@ namespace HugeIntegerProg
     private int[] digits = new int[DIGITS_SIZE];
     private Sign sign = Sign.Positive;
 
+    private HugeInteger()
+    {
+
+    }
+
     private HugeInteger(int[] digits, Sign sign)
     {
       this.digits = digits;
@@ -105,26 +110,57 @@ namespace HugeIntegerProg
     public HugeInteger prod(HugeInteger hugeInt)
     {
       var carry = 0;
-      var newDigits = new int[30];
-      var newSign = Sign.Positive;
+      var accumulator = new HugeInteger(new int[DIGITS_SIZE], Sign.Positive);
       for (int i = 0; i < 15; i++)
       {
+        var product = new int[DIGITS_SIZE];
         var coefficientOne = digits[i];
         for (int j = 0; j < 16; j++)
         {
-          var previousValue = newDigits[i + j];
           var coefficientTwo = hugeInt.digits[j];
-          newDigits[i + j] = (coefficientOne * coefficientTwo + previousValue + carry) % 10;
-          carry = coefficientOne * coefficientTwo + previousValue > 10 ? (coefficientOne * coefficientTwo + previousValue) / 10 : 0;
+          product[i + j] = (coefficientOne * coefficientTwo + carry) % 10;
+          carry = coefficientOne * coefficientTwo + carry > 10 ? (coefficientOne * coefficientTwo + carry) / 10 : 0;
         }
-        if (sign != hugeInt.sign)
-          newSign = Sign.Negative;
+        accumulator = accumulator.sum(new HugeInteger(product, Sign.Positive));
       }
-      return new HugeInteger(newDigits, newSign);
+      var newSign = sign != hugeInt.sign ? Sign.Negative : Sign.Positive;
+      return new HugeInteger(accumulator.digits, newSign);
+    }
+
+    public HugeInteger div(HugeInteger hugeInt)
+    {
+      if (hugeInt.length() > length())
+        return new HugeInteger();
+      else
+      {
+        var newSign = sign != hugeInt.sign ? Sign.Negative : Sign.Positive;
+        var divisor = hugeInt.clone();
+        divisor.sign = Sign.Positive;
+        var dividend = clone();
+        dividend.sign = Sign.Positive;
+        var quotient = new HugeInteger();
+        while (dividend.larger(divisor) != divisor)
+        {
+          quotient = quotient.sum(Input("1"));
+          dividend = dividend.diff(divisor);
+        }
+        quotient.sign = newSign;
+        return quotient;
+      }
+    }
+
+    public HugeInteger clone()
+    {
+      var zero = new HugeInteger();
+      return sum(zero);
     }
 
     private HugeInteger larger(HugeInteger hugeInt)
     {
+      if (length() > hugeInt.length())
+        return this;
+      if (hugeInt.length() > length())
+        return hugeInt;
       var larger = this;
       for (int i = DIGITS_SIZE - 1; i >= 0; i--)
       {
