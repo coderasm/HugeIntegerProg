@@ -30,6 +30,7 @@ namespace HugeIntegerProg
       var offset = sign == Sign.Negative ? 1 : 0;
       for (int i = 0; i < number.Length - offset; i++)
       {
+        //store number in reverse for numbers ending in zero
         digits[i] = int.Parse(number[number.Length - i - 1].ToString());
       }
       return new HugeInteger(digits, sign);
@@ -39,12 +40,14 @@ namespace HugeIntegerProg
     {
       var carry = 0;
       bool summing = true;
+      //only summing if signs equal
       if (sign != hugeInt.sign)
         summing = false;
       var newDigits = new int[30];
       var newSign = Sign.Positive;
       if (summing)
       {
+        //add from lowest index/place to highest index/place
         for (int i = 0; i < DIGITS_SIZE; i++)
         {
           newDigits[i] = (digits[i] + hugeInt.digits[i] + carry) % 10;
@@ -54,6 +57,7 @@ namespace HugeIntegerProg
       }
       else
       {
+        //clone to prevent mutation of original
         var clone = hugeInt.clone();
         clone.sign = Sign.Positive;
         return diff(clone);
@@ -64,14 +68,18 @@ namespace HugeIntegerProg
     public HugeInteger diff(HugeInteger hugeInt)
     {
       var carry = 0;
+      //signs match so add
       if (sign == Sign.Negative && hugeInt.sign == Sign.Positive)
       {
+        //clone to prevent mutation of original
         var clone = hugeInt.clone();
         clone.sign = Sign.Negative;
         return sum(clone);
       }
+      //signs match so add
       if (sign == Sign.Positive && hugeInt.sign == Sign.Negative)
       {
+        //clone to prevent mutation of original
         var clone = hugeInt.clone();
         clone.sign = Sign.Positive;
         return sum(clone);
@@ -79,10 +87,13 @@ namespace HugeIntegerProg
 
       var largest = larger(hugeInt);
       var smallest = largest == this ? hugeInt : this;
+      //pre borrow if any digits in larger number are smaller than
+      //any digits in the smaller number in respective indicies
       largest = preBorrow(largest, smallest);
 
       var newDigits = new int[30];
       var newSign = largest.sign;
+      //subtract from highest index/place to lowest index/place
       for (int i = DIGITS_SIZE - 1; i >= 0; i--)
       {
         newDigits[i] = (largest.digits[i] - smallest.digits[i]) % 10;
@@ -92,6 +103,7 @@ namespace HugeIntegerProg
 
     private HugeInteger preBorrow(HugeInteger larger, HugeInteger smaller)
     {
+      //clone to prevent mutation of original
       var largerClone = larger.clone();
       for (int i = DIGITS_SIZE - 1; i >= 0; i--)
       {
@@ -109,11 +121,12 @@ namespace HugeIntegerProg
           }
           //borrow
           largerClone.digits[greaterThanIndex]--;
-          //distribute the borrow
+          //distribute the borrow to intermediate indicies
           for (int j = greaterThanIndex - 1; j > i; j--)
           {
             largerClone.digits[j] += 9;
           }
+          //distribute borrow to digit needing it
           largerClone.digits[i] += 10;
         }
       }
@@ -125,20 +138,24 @@ namespace HugeIntegerProg
       var carry = 0;
       var accumulator = new HugeInteger(new int[DIGITS_SIZE], Sign.Positive);
       var thisLength = length();
+      //Add one to length if room to account for carry
       thisLength = thisLength == DIGITS_SIZE ? thisLength : thisLength + 1;
       var hugeIntLength = hugeInt.length();
+      //Add one to length if room to account for carry
       hugeIntLength = hugeIntLength == DIGITS_SIZE ? hugeIntLength : hugeIntLength + 1;
       for (int i = 0; i < thisLength; i++)
       {
         var product = new int[DIGITS_SIZE];
         var coefficientOne = digits[i];
+        //build an addend, partial product to be added to running sum
         for (int j = 0; j < hugeIntLength; j++)
         {
           var coefficientTwo = hugeInt.digits[j];
-          product[i + j] = (coefficientOne * coefficientTwo + carry) % 10;
-          carry = coefficientOne * coefficientTwo + carry;
-          carry = carry >= 10 ? carry / 10 : 0;
+          var total = coefficientOne * coefficientTwo + carry;
+          product[i + j] = (total) % 10;
+          carry = total >= 10 ? total / 10 : 0;
         }
+        //add addened, partial product to running sum
         accumulator = accumulator.sum(new HugeInteger(product, Sign.Positive));
       }
       var newSign = sign != hugeInt.sign ? Sign.Negative : Sign.Positive;
@@ -147,7 +164,8 @@ namespace HugeIntegerProg
 
     public HugeInteger div(HugeInteger hugeInt)
     {
-      if (hugeInt.length() > length())
+      //return zero if numerator is less than denominator
+      if (larger(hugeInt) == hugeInt)
         return new HugeInteger();
       else
       {
@@ -157,6 +175,7 @@ namespace HugeIntegerProg
         var dividend = clone();
         dividend.sign = Sign.Positive;
         var quotient = new HugeInteger();
+        //repeatedly subtract divisor from dividend until dividend is smaller than divisor
         while (dividend.larger(divisor) != divisor)
         {
           quotient = quotient.sum(Input("1"));
@@ -170,7 +189,8 @@ namespace HugeIntegerProg
     public HugeInteger mod(HugeInteger hugeInt)
     {
       var newSign = sign != hugeInt.sign ? Sign.Negative : Sign.Positive;
-      if (hugeInt.length() > length())
+      //return numerator if it is less than denominator
+      if (larger(hugeInt) == hugeInt)
       {
         var result = clone();
         result.sign = newSign;
@@ -178,10 +198,13 @@ namespace HugeIntegerProg
       }
       else
       {
+        //clone to prevent mutation of original
         var divisor = hugeInt.clone();
         divisor.sign = Sign.Positive;
+        //clone to prevent mutation of original
         var dividend = clone();
         dividend.sign = Sign.Positive;
+        //repeatedly subtract divisor from dividend until dividend is smaller than divisor
         while (dividend.larger(divisor) != divisor)
         {
           dividend = dividend.diff(divisor);
