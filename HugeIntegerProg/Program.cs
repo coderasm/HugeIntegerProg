@@ -10,7 +10,9 @@ namespace HugeIntegerProg
   {
     static void Main(string[] args)
     {
-      HugeIntegerTest.Test();
+      HugeIntegerTest.MethodTests();
+      HugeIntegerTest.FactorialTest();
+      Console.ReadKey();
     }
   }
 }
