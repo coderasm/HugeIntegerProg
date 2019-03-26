@@ -67,7 +67,6 @@ namespace HugeIntegerProg
 
     public HugeInteger diff(HugeInteger hugeInt)
     {
-      var carry = 0;
       //signs match so add
       if (sign == Sign.Negative && hugeInt.sign == Sign.Positive)
       {
